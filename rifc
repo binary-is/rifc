@@ -1,8 +1,5 @@
 #!/usr/bin/python
 # RIFC: Remote IP-list Firewall Configurer
-# Version: 0.4
-# License: GPLv2
-# Authors: Helgi Hrafn Gunnarsson <helgi@binary.is>
 import os
 import urllib2
 import subprocess
