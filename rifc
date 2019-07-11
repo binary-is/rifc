@@ -1,0 +1,97 @@
+#!/usr/bin/python
+# RIFC: Remote IP-list Firewall Configurer
+# Version: 0.4
+# License: GPLv2
+# Authors: Helgi Hrafn Gunnarsson <helgi@binary.is>
+import os
+import urllib2
+import subprocess
+import sys
+import re
+from sys import stderr
+from sys import stdout
+
+def run(command):
+    output = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    lines, errors = output.communicate()
+
+    if output.returncode != 0:
+        print 'Error: %s' % errors.strip()
+        quit(1)
+
+    return lines, errors
+
+def get_chain_lines(chain_name):
+    lines, errors = run(['iptables', '-n', '-L', chain_name])
+    lines = lines.split('\n')
+    return lines
+
+def get_source_ips(ip_url):
+    response = urllib2.urlopen(ip_url)
+    ip_list = response.read().split()
+    return ip_list
+
+def get_local_ips(lines):
+    result = []
+
+    for line in lines:
+        parts = re.split('\s+', line)
+        # Check if this is the correct line
+        if parts[0] == 'ACCEPT' and parts[1] == 'all' and parts[4] == '0.0.0.0/0':
+            ip = parts[3]
+            result.append(ip)
+
+    return result
+
+def add_ip(ip, chain_name):
+    stdout.write('Adding IP %s...' % ip)
+    stdout.flush()
+
+    run(['iptables', '-A', chain_name, '-s', ip, '-j', 'ACCEPT'])
+
+    stdout.write(' done\n')
+
+def remove_ip(ip, chain_name):
+    stdout.write('Removing IP %s...' % ip)
+    stdout.flush()
+
+    run(['iptables', '-D', chain_name, '-s', ip, '-j', 'ACCEPT'])
+
+    stdout.write(' done\n')
+
+def error(msg):
+    stderr.write('Error: %s\n' % msg)
+    quit(1)
+
+def help():
+    stdout.write('Usage: rifc <network-list-url> <iptables-chain-name>\n')
+    stdout.write('\n')
+    quit(2)
+
+def main(argv):
+
+    if os.geteuid() != 0:
+        error('You need root access to run this program.')
+
+    try:
+        ip_url = argv[1]
+        chain_name = argv[2]
+    except IndexError:
+        help()
+
+    lines = get_chain_lines(chain_name)
+
+    source_ips = get_source_ips(ip_url)
+    local_ips = get_local_ips(lines)
+
+    for ip in source_ips:
+        if ip not in local_ips:
+            add_ip(ip, chain_name)
+
+    for ip in local_ips:
+        if ip not in source_ips:
+            remove_ip(ip, chain_name)
+
+if __name__ == '__main__':
+    main(sys.argv)
+
