@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 # RIFC: Remote IP-list Firewall Configurer
 import os
-import urllib2
 import subprocess
 import sys
 import re
 from sys import stderr
 from sys import stdout
+from urllib.request import urlopen
 
 def run(command):
     output = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     lines, errors = output.communicate()
 
     if output.returncode != 0:
-        print 'Error: %s' % errors.strip()
+        print('Error: %s' % errors.strip())
         quit(1)
 
-    return lines, errors
+    return str(lines, 'utf-8'), errors
 
 def get_chain_lines(chain_name):
     lines, errors = run(['iptables', '-n', '-L', chain_name])
@@ -24,8 +24,8 @@ def get_chain_lines(chain_name):
     return lines
 
 def get_source_ips(ip_url):
-    response = urllib2.urlopen(ip_url)
-    ip_list = response.read().split()
+    response = urlopen(ip_url)
+    ip_list = str(response.read(), 'utf-8').split()
     return ip_list
 
 def get_local_ips(lines):
