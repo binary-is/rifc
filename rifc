@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # RIFC: Remote IP-list Firewall Configurer
 import os
 import urllib2
