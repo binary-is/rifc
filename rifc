@@ -34,7 +34,7 @@ def get_local_ips(lines):
     for line in lines:
         parts = re.split('\s+', line)
         # Check if this is the correct line
-        if parts[0] == 'ACCEPT' and parts[1] == 'all' and parts[4] == '0.0.0.0/0':
+        if parts[0] == 'ACCEPT' and parts[1] in ['all', '0'] and parts[4] == '0.0.0.0/0':
             ip = parts[3]
             result.append(ip)
 
