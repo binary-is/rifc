@@ -82,6 +82,9 @@ def main(argv: list[str]) -> None:
     if os.geteuid() != 0:
         error("You need root access to run this program.")
 
+    ip_url: str = ""
+    chain_name: str = ""
+
     try:
         ip_url = argv[1]
         chain_name = argv[2]
