@@ -9,7 +9,7 @@ from sys import stdout
 from urllib.request import urlopen
 
 
-def run(command):
+def run(command: list[str]) -> tuple[str, bytes]:
     output = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     lines, errors = output.communicate()
 
@@ -20,19 +20,19 @@ def run(command):
     return str(lines, "utf-8"), errors
 
 
-def get_chain_lines(chain_name):
+def get_chain_lines(chain_name: str) -> list[str]:
     lines, errors = run(["iptables", "-n", "-L", chain_name])
     lines = lines.split("\n")
     return lines
 
 
-def get_source_ips(ip_url):
+def get_source_ips(ip_url: str) -> list[str]:
     response = urlopen(ip_url)
     ip_list = str(response.read(), "utf-8").split()
     return ip_list
 
 
-def get_local_ips(lines):
+def get_local_ips(lines: list[str]) -> list[str]:
     result = []
 
     for line in lines:
@@ -49,7 +49,7 @@ def get_local_ips(lines):
     return result
 
 
-def add_ip(ip, chain_name):
+def add_ip(ip: str, chain_name: str) -> None:
     stdout.write("Adding IP %s..." % ip)
     stdout.flush()
 
@@ -58,7 +58,7 @@ def add_ip(ip, chain_name):
     stdout.write(" done\n")
 
 
-def remove_ip(ip, chain_name):
+def remove_ip(ip: str, chain_name: str) -> None:
     stdout.write("Removing IP %s..." % ip)
     stdout.flush()
 
@@ -67,18 +67,18 @@ def remove_ip(ip, chain_name):
     stdout.write(" done\n")
 
 
-def error(msg):
+def error(msg: str) -> None:
     stderr.write("Error: %s\n" % msg)
     quit(1)
 
 
-def help():
+def help() -> None:
     stdout.write("Usage: rifc <network-list-url> <iptables-chain-name>\n")
     stdout.write("\n")
     quit(2)
 
 
-def main(argv):
+def main(argv: list[str]) -> None:
     if os.geteuid() != 0:
         error("You need root access to run this program.")
 
